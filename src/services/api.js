@@ -16,33 +16,26 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
  * `items`, define `back_urls` (success/failure/pending) y `notification_url`
  * para el webhook, y persiste la reserva en MySQL/Postgres con estado "pending".
  */
+// Ejemplo de cómo debería estar en tu archivo ../services/api.js
 export async function createPaymentPreference(booking) {
-  const response = await fetch(`${API_URL}/api/payments/create-preference`, {
+  const response = await fetch("http://localhost:4000/api/create-preference", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+    },
+    // Mapeamos los datos de tu context "booking" al formato del backend
     body: JSON.stringify({
-      service: {
-        id: booking.service.id,
-        title: booking.service.title,
-        price: booking.service.price,
-      },
-      date: booking.date,
-      time: booking.time,
-      address: booking.address,
-      fullName: booking.fullName,
-      phone: booking.phone,
-      notes: booking.notes,
+      title: `Reserva de ${booking.service.name || "Servicio"}`, // Ajustalo según la estructura de tu servicio
+      quantity: 1,
+      price: booking.service.price, // El precio que venga del contexto
     }),
   });
 
   if (!response.ok) {
-    const errorBody = await response.json().catch(() => ({}));
-    throw new Error(
-      errorBody.message || `El backend respondió con estado ${response.status}`
-    );
+    throw new Error("Error en la comunicación con el servidor de pagos");
   }
 
-  return response.json();
+  return await response.json(); // Esto devolverá { id, init_point }
 }
 
 /**
@@ -52,9 +45,7 @@ export async function createPaymentPreference(booking) {
  *   response 200: { status: "approved" | "pending" | "rejected" }
  */
 export async function getPaymentStatus(bookingId) {
-  const response = await fetch(
-    `${API_URL}/api/payments/${bookingId}/status`
-  );
+  const response = await fetch(`${API_URL}/api/payments/${bookingId}/status`);
   if (!response.ok) {
     throw new Error(`No se pudo consultar el estado (${response.status})`);
   }

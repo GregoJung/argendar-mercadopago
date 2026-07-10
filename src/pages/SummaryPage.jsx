@@ -28,7 +28,7 @@ export default function SummaryPage() {
     } catch (err) {
       setError(
         err.message ||
-          "No pudimos iniciar el pago. Verificá que el backend esté corriendo."
+          "No pudimos iniciar el pago. Verificá que el backend esté corriendo.",
       );
       setLoading(false);
     }
